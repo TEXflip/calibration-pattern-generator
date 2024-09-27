@@ -48,11 +48,54 @@ function generateMarkerSvg(width, height, bits, fixPdfArtifacts = true) {
     return svg;
 }
 
+function generateMarkerInSvg(bits, svg, size, svgSize, row, col) {
+    let rect = document.createElement('rect');
+    let x = col + (1-svgSize)/2;
+    let y = row + (1-svgSize)/2;
+    let cellSize = svgSize/(size+2)
+    rect.setAttribute('x', x);
+    rect.setAttribute('y', y);
+    rect.setAttribute('width', svgSize);
+    rect.setAttribute('height', svgSize);
+    rect.setAttribute('fill', 'black');
+    svg.appendChild(rect);
+
+    // "Pixels"
+    for (var i = 0; i < size; i++) {
+        for (var j = 0; j < size; j++) {
+            var white = bits[i * size + j];
+            if (!white) continue;
+
+            var pixel = document.createElement('rect');
+            pixel.setAttribute('width', cellSize);
+            pixel.setAttribute('height', cellSize);
+            pixel.setAttribute('x', cellSize + x + j*cellSize);
+            pixel.setAttribute('y', cellSize + y + i*cellSize);
+            pixel.setAttribute('fill', 'white');
+            svg.appendChild(pixel);
+
+            // if (!fixPdfArtifacts) continue;
+
+            // if ((j < width - 1) && (bits[i * height + j + 1])) {
+            //     pixel.setAttribute('width', 1.5);
+            // }
+
+            // if ((i < height - 1) && (bits[(i + 1) * height + j])) {
+            //     var pixel2 = document.createElement('rect');;
+            //     pixel2.setAttribute('width', 1);
+            //     pixel2.setAttribute('height', 1.5);
+            //     pixel2.setAttribute('x', j + 1);
+            //     pixel2.setAttribute('y', i + 1);
+            //     pixel2.setAttribute('fill', 'white');
+            //     svg.appendChild(pixel2);
+            // }
+        }
+    }
+}
+
 var dict;
 
-function generateArucoMarker(width, height, dictName, id) {
-    console.log('Generate ArUco marker ' + dictName + ' ' + id);
-
+function arucoMatrix(width, height, dictName, id) {
     var bytes = dict[dictName][id];
     var bits = [];
     var bitsCount = width * height;
@@ -64,6 +107,13 @@ function generateArucoMarker(width, height, dictName, id) {
             bits.push((byte >> i) & 1);
         }
     }
+    return bits;
+}
+
+function generateArucoMarker(width, height, dictName, id) {
+    console.log('Generate ArUco marker ' + dictName + ' ' + id);
+
+    bits = arucoMatrix(width, height, dictName, id);
 
     return generateMarkerSvg(width, height, bits);
 }
@@ -72,25 +122,74 @@ function generateChessboardSvg(rows, columns, squareSize) {
     width = columns * squareSize;
     height = rows * squareSize;
     var svg = document.createElement('svg');
-    svg.setAttribute('viewBox', '0 0 ' + width + ' ' + height);
+    svg.setAttribute('viewBox', '0 0 ' + columns + ' ' + rows);
     svg.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
     svg.setAttribute('shape-rendering', 'crispEdges');
+    var rect = document.createElement('rect');
+    rect.setAttribute('x', 0);
+    rect.setAttribute('y', 0);
+    rect.setAttribute('width', columns);
+    rect.setAttribute('height', rows);
+    rect.setAttribute('fill', 'black');
+    svg.appendChild(rect);
 
     for (var i = 0; i < rows; i++) {
         for (var j = 0; j < columns; j++) {
+            if ((i + j) % 2 == 0) {
+                continue;
+            }
             var rect = document.createElement('rect');
-            rect.setAttribute('x', j * squareSize);
-            rect.setAttribute('y', i * squareSize);
-            rect.setAttribute('width', squareSize);
-            rect.setAttribute('height', squareSize);
-            rect.setAttribute('fill', (i + j + 1) % 2 == 0 ? 'white' : 'black');
+            rect.setAttribute('x', j);
+            rect.setAttribute('y', i);
+            rect.setAttribute('width', 1);
+            rect.setAttribute('height', 1);
+            rect.setAttribute('fill', 'white');
             svg.appendChild(rect);
         }
     }
     return svg;
 }
 
-function generateCharucoBoard(rows, columns, squareSize, markerSize, dictName, startId = 0) {
+function generateCharucoBoard(rows, columns, squareSize, dictName, markerSize, startId = 0) {
+    markerSizemm = squareSize - Math.floor((squareSize - 1) / 4) - 1;
+    markerSizeSvg = markerSizemm / squareSize;
+    var svg = document.createElement('svg');
+    svg.setAttribute('viewBox', '0 0 ' + columns + ' ' + rows);
+    svg.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+    svg.setAttribute('shape-rendering', 'crispEdges');
+    var rect = document.createElement('rect');
+    rect.setAttribute('x', 0);
+    rect.setAttribute('y', 0);
+    rect.setAttribute('width', columns);
+    rect.setAttribute('height', rows);
+    rect.setAttribute('fill', 'white');
+    svg.appendChild(rect);
+
+    for (var i = 0; i < rows; i++) {
+        for (var j = 0; j < columns; j++) {
+            if ((i + j + 1) % 2 == 0) {
+                var rect = document.createElement('rect');
+                rect.setAttribute('x', j);
+                rect.setAttribute('y', i);
+                rect.setAttribute('width', 1);
+                rect.setAttribute('height', 1);
+                rect.setAttribute('fill', 'black');
+                svg.appendChild(rect);
+            }
+            else{
+                bits = arucoMatrix(markerSize, markerSize, dictName, startId++);
+                generateMarkerInSvg(bits, svg, markerSize, markerSizeSvg, i, j);
+            }
+        }
+    }
+    return svg;
+}
+
+function generateCircleBoard(rows, columns, squareSize, markerSize, dictName, startId = 0) {
+
+}
+
+function generateAsymmetricCircleBoard(rows, columns, squareSize, markerSize, dictName, startId = 0) {
 
 }
 
@@ -110,18 +209,13 @@ function init() {
     var rowsInput = document.querySelector('.setup input[name=rows]');
     var columnsInput = document.querySelector('.setup input[name=columns]');
 
-    var pattern_to_function = {
-        'aruco': generateArucoMarker,
-        'chessboard': generateChessboardSvg,
-        'charuco': generateCharucoBoard
-    };
-
     function updateMarker() {
         var markerId = Number(markerIdStartInput.value);
         var size = Number(sizeInput.value);
         var option = dictSelect.options[dictSelect.selectedIndex];
         var dictName = option.value;
         var maxId = (Number(option.getAttribute('data-number')) || 1000) - 1;
+        var marker_size = Number(option.getAttribute('data-height'));
         var rows = Number(rowsInput.value);
         var columns = Number(columnsInput.value);
         var width = columns * size;
@@ -135,9 +229,20 @@ function init() {
             markerId = maxId;
         }
 
+        svgFunGeneration = () => generateChessboardSvg(rows, columns, size);
+        if (pattern == 'aruco') {
+            svgFunGeneration = () => generateArucoMarker(width, height, dictName, markerId);
+        } else if (pattern == 'charuco') {
+            svgFunGeneration = () => generateCharucoBoard(rows, columns, size, dictName, marker_size, markerId);
+        } else if (pattern == 'circles') {
+            svgFunGeneration = () => generateCircleBoard(rows, columns, size, size, dictName, markerId);
+        } else if (pattern == 'acircles') {
+            svgFunGeneration = () => generateAsymmetricCircleBoard(rows, columns, size, size, dictName, markerId);
+        }
+
         // Wait until dict data is loaded
         loadDict.then(function () {
-            var svg = generateChessboardSvg(rows, columns, size);
+            var svg = svgFunGeneration();
             svg.setAttribute('width', width + 'mm');
             svg.setAttribute('height', height + 'mm');
             document.querySelector('.marker').innerHTML = svg.outerHTML;
