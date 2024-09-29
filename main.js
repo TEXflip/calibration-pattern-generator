@@ -48,11 +48,11 @@ function generateMarkerSvg(width, height, bits, fixPdfArtifacts = true) {
     return svg;
 }
 
-function generateMarkerInSvg(bits, svg, size, svgSize, row, col) {
-    let rect = document.createElement('rect');
-    let x = col + (1 - svgSize) / 2;
-    let y = row + (1 - svgSize) / 2;
+function generateMarkerInSvg(bits, svg, size, square_size, svgSize, row, col) {
+    let x = col + (square_size - svgSize) / 2;
+    let y = row + (square_size - svgSize) / 2;
     let cellSize = svgSize / (size + 2)
+    let rect = document.createElement('rect');
     rect.setAttribute('x', x);
     rect.setAttribute('y', y);
     rect.setAttribute('width', svgSize);
@@ -152,16 +152,16 @@ function generateChessboardSvg(rows, columns, squareSize) {
     width = columns * squareSize;
     height = rows * squareSize;
     var svg = document.createElement('svg');
-    svg.setAttribute('viewBox', '0 0 ' + columns + ' ' + rows);
+    svg.setAttribute('viewBox', '0 0 ' + width + ' ' + height);
+    svg.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
     svg.setAttribute('width', width + 'mm');
     svg.setAttribute('height', height + 'mm');
-    svg.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
     svg.setAttribute('shape-rendering', 'crispEdges');
     var rect = document.createElement('rect');
     rect.setAttribute('x', 0);
     rect.setAttribute('y', 0);
-    rect.setAttribute('width', columns);
-    rect.setAttribute('height', rows);
+    rect.setAttribute('width', width);
+    rect.setAttribute('height', height);
     rect.setAttribute('fill', 'black');
     svg.appendChild(rect);
 
@@ -171,10 +171,10 @@ function generateChessboardSvg(rows, columns, squareSize) {
                 continue;
             }
             var rect = document.createElement('rect');
-            rect.setAttribute('x', j);
-            rect.setAttribute('y', i);
-            rect.setAttribute('width', 1);
-            rect.setAttribute('height', 1);
+            rect.setAttribute('x', j * squareSize);
+            rect.setAttribute('y', i * squareSize);
+            rect.setAttribute('width', squareSize);
+            rect.setAttribute('height', squareSize);
             rect.setAttribute('fill', 'white');
             svg.appendChild(rect);
         }
@@ -188,33 +188,35 @@ function generateCharucoBoard(rows, columns, squareSize, dictName, markerSize, s
     width = columns * squareSize;
     height = rows * squareSize;
     var svg = document.createElement('svg');
-    svg.setAttribute('viewBox', '0 0 ' + columns + ' ' + rows);
+    svg.setAttribute('viewBox', '0 0 ' + width + ' ' + height);
     svg.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
-    svg.setAttribute('shape-rendering', 'crispEdges');
     svg.setAttribute('width', width + 'mm');
     svg.setAttribute('height', height + 'mm');
+    svg.setAttribute('shape-rendering', 'crispEdges');
     var rect = document.createElement('rect');
     rect.setAttribute('x', 0);
     rect.setAttribute('y', 0);
-    rect.setAttribute('width', columns);
-    rect.setAttribute('height', rows);
+    rect.setAttribute('width', width);
+    rect.setAttribute('height', height);
     rect.setAttribute('fill', 'white');
     svg.appendChild(rect);
 
     for (var i = 0; i < rows; i++) {
         for (var j = 0; j < columns; j++) {
+            x = j * squareSize;
+            y = i * squareSize;
             if ((i + j + 1) % 2 == 0) {
                 var rect = document.createElement('rect');
-                rect.setAttribute('x', j);
-                rect.setAttribute('y', i);
-                rect.setAttribute('width', 1);
-                rect.setAttribute('height', 1);
+                rect.setAttribute('x', x);
+                rect.setAttribute('y', y);
+                rect.setAttribute('width', squareSize);
+                rect.setAttribute('height', squareSize);
                 rect.setAttribute('fill', 'black');
                 svg.appendChild(rect);
             }
             else {
                 bits = arucoMatrix(markerSize, markerSize, dictName, startId++);
-                generateMarkerInSvg(bits, svg, markerSize, markerSizeSvg, i, j);
+                generateMarkerInSvg(bits, svg, markerSize, squareSize, markerSizemm, y, x);
             }
         }
     }
@@ -226,10 +228,10 @@ function generateCircleBoard(rows, columns, circle_size_mm, circle_spacing_mm) {
     height = rows * (circle_size_mm + circle_spacing_mm);
     var svg = document.createElement('svg');
     svg.setAttribute('viewBox', '0 0 ' + width + ' ' + height);
-    svg.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
-    svg.setAttribute('shape-rendering', 'crispEdges');
     svg.setAttribute('width', width + "mm");
     svg.setAttribute('height', height + "mm");
+    svg.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+    svg.setAttribute('shape-rendering', 'crispEdges');
     var rect = document.createElement('rect');
     rect.setAttribute('x', 0);
     rect.setAttribute('y', 0);
@@ -315,8 +317,6 @@ function init() {
         var marker_size = Number(option.getAttribute('data-height'));
         var rows = Number(rowsInput.value);
         var columns = Number(columnsInput.value);
-        var width = columns * size;
-        var height = rows * size;
         var pattern = patternSelect.options[patternSelect.selectedIndex].value;
 
         markerIdStartInput.setAttribute('max', maxId);
