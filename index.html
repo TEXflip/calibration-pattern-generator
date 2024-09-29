@@ -11,11 +11,11 @@
 			<div class="field">
                 <label for="frm-pattern">Pattern:</label>
                 <select name="pattern" id="frm-pattern">
+                    <option value="acircles">Asymmetric Circles</option>
+					<option value="aruco">Aruco Marker</option>
 					<option value="charuco">ChAruco</option>
                     <option value="chessboard">Chessboard</option>
-                    <option value="aruco">Aruco Marker</option>
                     <option value="circles">Circles</option>
-                    <option value="acircles">Asymmetric Circles</option>
                 </select>
             </div>
 			<div class="field">
@@ -43,7 +43,11 @@
 			</div>
 			<div class="field">
 				<label for="frm-size">Marker size, mm:</label>
-				<input id="frm-size" name="size" type="number" min="10" max="5000" value="20">
+				<input id="frm-size" name="size" type="number" min="1" max="5000" value="20">
+			</div>
+			<div class="field">
+				<label for="frm-spacing">circle spacing, mm:</label>
+				<input id="frm-spacing" name="spacing" type="number" min="0" max="5000" value="10">
 			</div>
             <div class="field">
                 <label for="frm-cols">columns:</label>
