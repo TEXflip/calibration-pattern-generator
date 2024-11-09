@@ -4,6 +4,9 @@
 		<meta name="description" content="Generate ArUco marker for printing with dictionary selection">
 		<meta name="keywords" content="ArUco, AprilTag, OpenCV, april, tag, marker, dictionary, family, print, pdf, svg, computer vision, robotics">
 		<title>Online Calibration Pattern Generator</title>
+		<link rel="stylesheet" type="text/css" href="style.css">
+		<script src="https://cdn.jsdelivr.net/npm/pdfkit@0.10.0/js/pdfkit.standalone.js"></script>
+		<script src="https://cdn.jsdelivr.net/npm/svg-to-pdfkit@0.1.8/source.js"></script>
 	</head>
 	<body>
 		<h1>Calibration Pattern Generator!</h1>
@@ -62,8 +65,10 @@
 		<div class="marker"></div>
 
 		<div class="tools">
-			<a href="" class="save-button">Save</a> this marker as SVG, or
-			<a href="javascript:window.print()">open</a> standard browser's print dialog to print or get the PDF.
+			<input type="button" value="Export SVG" class="export-svg" onclick="export_svg()">
+			<input type="button" value="Export PDF" class="export-pdf" onclick="export_pdf()">
+			<!-- <a href="" class="save-button">Save</a> this marker as SVG, or -->
+			<!-- <a href="javascript:window.print()">open</a> standard browser's print dialog to print or get the PDF. -->
 		</div>
 		<footer>
 

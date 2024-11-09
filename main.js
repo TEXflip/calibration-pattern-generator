@@ -1,3 +1,10 @@
+let export_data = {
+    width_mm: 0,
+    height_mm: 0,
+    filename: ''
+};
+
+
 function generateMarkerSvg(width, height, bits, fixPdfArtifacts = true) {
     var svg = document.createElement('svg');
     svg.setAttribute('viewBox', '0 0 ' + (width + 2) + ' ' + (height + 2));
@@ -100,6 +107,12 @@ function arucoMatrix(width, height, dictName, id) {
     var bits = [];
     var bitsCount = width * height;
 
+    if (bytes === undefined) {
+        console.error(dictName + " does not have id " + id);
+        bits = new Array(bitsCount).fill(0);
+        return bits;
+    }
+
     // Parse marker's bytes
     for (var byte of bytes) {
         var start = bitsCount - bits.length;
@@ -115,6 +128,9 @@ function generateArucoMarker(size, markerSize, dictName, id) {
 
     width = size * markerSize;
     height = size * markerSize;
+    export_data.width_mm = width;
+    export_data.height_mm = height;
+    export_data.filename = 'aruco_' + dictName + '_' + id;
 
     var svg = document.createElement('svg');
     svg.setAttribute('viewBox', '0 0 ' + (markerSize + 2) + ' ' + (markerSize + 2));
@@ -151,6 +167,10 @@ function generateArucoMarker(size, markerSize, dictName, id) {
 function generateChessboardSvg(rows, columns, squareSize) {
     width = columns * squareSize;
     height = rows * squareSize;
+    export_data.width_mm = width;
+    export_data.height_mm = height;
+    export_data.filename = 'chessboard_' + rows + 'x' + columns + '_' + squareSize + 'mm';
+
     var svg = document.createElement('svg');
     svg.setAttribute('viewBox', '0 0 ' + width + ' ' + height);
     svg.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
@@ -187,6 +207,10 @@ function generateCharucoBoard(rows, columns, squareSize, dictName, markerSize, s
     markerSizeSvg = markerSizemm / squareSize;
     width = columns * squareSize;
     height = rows * squareSize;
+    export_data.width_mm = width;
+    export_data.height_mm = height;
+    export_data.filename = 'charuco_' + columns + 'x' + rows + '_' + squareSize + 'mm_' + markerSizemm + 'mm_' + dictName;
+
     var svg = document.createElement('svg');
     svg.setAttribute('viewBox', '0 0 ' + width + ' ' + height);
     svg.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
@@ -226,6 +250,10 @@ function generateCharucoBoard(rows, columns, squareSize, dictName, markerSize, s
 function generateCircleBoard(rows, columns, circle_size_mm, circle_spacing_mm) {
     width = columns * (circle_size_mm + circle_spacing_mm);
     height = rows * (circle_size_mm + circle_spacing_mm);
+    export_data.width_mm = width;
+    export_data.height_mm = height;
+    export_data.filename = 'circles_' + rows + 'x' + columns + '_' + circle_size_mm + 'mm_' + circle_spacing_mm + 'mm';
+
     var svg = document.createElement('svg');
     svg.setAttribute('viewBox', '0 0 ' + width + ' ' + height);
     svg.setAttribute('width', width + "mm");
@@ -257,6 +285,10 @@ function generateCircleBoard(rows, columns, circle_size_mm, circle_spacing_mm) {
 function generateAsymmetricCircleBoard(rows, columns, circle_size_mm, circle_spacing_mm) {
     width = columns * (circle_size_mm + circle_spacing_mm);
     height = rows * (circle_size_mm + circle_spacing_mm);
+    export_data.width_mm = width;
+    export_data.height_mm = height;
+    export_data.filename = 'circles_' + rows + 'x' + columns + '_' + circle_size_mm + 'mm_' + circle_spacing_mm + 'mm';
+
     var svg = document.createElement('svg');
     svg.setAttribute('viewBox', '0 0 ' + width + ' ' + height);
     svg.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
@@ -274,7 +306,7 @@ function generateAsymmetricCircleBoard(rows, columns, circle_size_mm, circle_spa
     for (var i = 0; i < rows; i++) {
         for (var j = 0; i % 2 == 0 ? j < columns : j < columns - 1; j++) {
             cx = j * (circle_spacing_mm + circle_size_mm) + circle_spacing_mm / 2 + circle_size_mm / 2;
-            if (i % 2 == 1){
+            if (i % 2 == 1) {
                 cx += (circle_spacing_mm + circle_size_mm) / 2;
             }
             cy = i * (circle_spacing_mm + circle_size_mm) + circle_spacing_mm / 2 + circle_size_mm / 2;
@@ -290,6 +322,53 @@ function generateAsymmetricCircleBoard(rows, columns, circle_size_mm, circle_spa
     return svg
 }
 
+function export_svg() {
+    var svg = document.querySelector('.marker').innerHTML;
+    var blob = new Blob([svg], { type: 'image/svg+xml' });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url;
+    a.download = export_data.filename + '.svg';
+    a.click();
+    a.remove();
+}
+
+function export_pdf() {
+    margin_points = 10;
+    mm_to_points = 2.8346456693;
+    width_points = export_data.width_mm * mm_to_points + margin_points * 2;
+    height_points = export_data.height_mm * mm_to_points + margin_points * 2;
+
+    var svg = document.querySelector('.marker').innerHTML;
+    const doc = new window.PDFDocument({ size: [width_points, height_points] });
+    const chunks = [];
+    const stream = doc.pipe({
+        // writable stream implementation
+        write: (chunk) => chunks.push(chunk),
+        end: () => {
+            const pdfBlob = new Blob(chunks, {
+                type: 'application/octet-stream'
+            });
+            var blobUrl = URL.createObjectURL(pdfBlob);
+            const link = document.createElement('a');
+            link.href = blobUrl;
+            link.download = export_data.filename + '.pdf';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            link.remove();
+        },
+        // readable streaaam stub iplementation
+        on: (event, action) => { },
+        once: (...args) => { },
+        emit: (...args) => { },
+    });
+
+    window.SVGtoPDF(doc, svg, margin_points, margin_points)
+
+    doc.end();
+}
+
 // Fetch markers dict
 var loadDict = fetch('markers.json').then(function (res) {
     return res.json();
@@ -303,21 +382,27 @@ function init() {
     var markerIdStartInput = document.querySelector('.setup input[name=id]');
     var sizeInput = document.querySelector('.setup input[name=size]');
     var spacingInput = document.querySelector('.setup input[name=spacing]');
-    var saveButton = document.querySelector('.save-button');
+    // var saveButton = document.querySelector('.save-button');
     var rowsInput = document.querySelector('.setup input[name=rows]');
     var columnsInput = document.querySelector('.setup input[name=columns]');
 
-    function updateMarker() {
-        var markerId = Number(markerIdStartInput.value);
-        var size = Number(sizeInput.value);
-        var spacing = Number(spacingInput.value);
+    get_form_data = function () {
         var option = dictSelect.options[dictSelect.selectedIndex];
-        var dictName = option.value;
-        var maxId = (Number(option.getAttribute('data-number')) || 1000) - 1;
-        var marker_size = Number(option.getAttribute('data-height'));
-        var rows = Number(rowsInput.value);
-        var columns = Number(columnsInput.value);
-        var pattern = patternSelect.options[patternSelect.selectedIndex].value;
+        return {
+            markerId: Number(markerIdStartInput.value),
+            size: Number(sizeInput.value),
+            spacing: Number(spacingInput.value),
+            dictName: option.value,
+            maxId: (Number(option.getAttribute('data-number')) || 1000) - 1,
+            marker_size: Number(option.getAttribute('data-height')),
+            rows: Number(rowsInput.value),
+            columns: Number(columnsInput.value),
+            pattern: patternSelect.options[patternSelect.selectedIndex].value,
+        }
+    }
+
+    function updateMarker() {
+        var { markerId, size, spacing, dictName, maxId, marker_size, rows, columns, pattern } = get_form_data();
 
         markerIdStartInput.setAttribute('max', maxId);
 
@@ -341,8 +426,6 @@ function init() {
         loadDict.then(function () {
             var svg = svgFunGeneration();
             document.querySelector('.marker').innerHTML = svg.outerHTML;
-            saveButton.setAttribute('href', 'data:image/svg;base64,' + btoa(svg.outerHTML.replace('viewbox', 'viewBox')));
-            saveButton.setAttribute('download', dictName + '-' + markerId + '.svg');
         })
     }
 
