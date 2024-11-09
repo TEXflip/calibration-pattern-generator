@@ -1,8 +1,22 @@
 let export_data = {
     width_mm: 0,
     height_mm: 0,
-    filename: ''
+    filename: '',
+    info: ''
 };
+
+let OPENCV_DICTS = {
+    "aruco": "DICT_ARUCO_ORIGINAL",
+    "4x4_1000": "DICT_4X4_1000",
+    "5x5_1000": "DICT_5X5_1000",
+    "6x6_1000": "DICT_6X6_1000",
+    "7x7_1000": "DICT_7X7_1000",
+    "mip_36h12": "DICT_APRILTAG_36h12",
+    "april_16h5": "DICT_APRILTAG_16h5",
+    "april_25h9": "DICT_APRILTAG_25h9",
+    "april_36h10": "DICT_APRILTAG_36h10",
+    "april_36h11": "DICT_APRILTAG_36h11",
+}
 
 function generateMarkerInSvg(bits, svg, size, square_size, svgSize, row, col) {
     let x = col + (square_size - svgSize) / 2;
@@ -63,7 +77,8 @@ function generateArucoMarker(size, markerSize, dictName, id) {
     height = size * markerSize;
     export_data.width_mm = size;
     export_data.height_mm = size;
-    export_data.filename = 'aruco_' + dictName + '_' + id;
+    export_data.filename = 'aruco_' + OPENCV_DICTS[dictName] + '_' + id;
+    export_data.info = 'Dictionary: ' + OPENCV_DICTS[dictName] + ' Marker id: ' + id;
 
     var svg = document.createElement('svg');
     svg.setAttribute('viewBox', '0 0 ' + (markerSize + 2) + ' ' + (markerSize + 2));
@@ -103,6 +118,7 @@ function generateChessboardSvg(rows, columns, squareSize) {
     export_data.width_mm = width;
     export_data.height_mm = height;
     export_data.filename = 'chessboard_' + rows + 'x' + columns + '_' + squareSize + 'mm';
+    export_data.info = 'Square size: ' + squareSize + 'mm' + ' size: ' + columns + 'x' + rows;
 
     var svg = document.createElement('svg');
     svg.setAttribute('viewBox', '0 0 ' + width + ' ' + height);
@@ -140,9 +156,16 @@ function generateCharucoBoard(rows, columns, squareSize, dictName, markerSize, s
     markerSizeSvg = markerSizemm / squareSize;
     width = columns * squareSize;
     height = rows * squareSize;
+
     export_data.width_mm = width;
     export_data.height_mm = height;
-    export_data.filename = 'charuco_' + columns + 'x' + rows + '_' + squareSize + 'mm_' + markerSizemm + 'mm_' + dictName;
+    export_data.filename = 'charuco_' + columns + 'x' + rows + '_' + squareSize + 'mm_' + markerSizemm + 'mm_' + OPENCV_DICTS[dictName];
+    export_data.info = 'Dictionary: ' + OPENCV_DICTS[dictName] + 
+                    ' Square size: ' + squareSize + 'mm' +
+                    ' Marker size: ' + markerSizemm + 'mm' +
+                    ' size: ' + columns + 'x' + rows +
+                    ' start id: ' + startId;
+
 
     var svg = document.createElement('svg');
     svg.setAttribute('viewBox', '0 0 ' + width + ' ' + height);
@@ -186,6 +209,7 @@ function generateCircleBoard(rows, columns, circle_size_mm, circle_spacing_mm) {
     export_data.width_mm = width;
     export_data.height_mm = height;
     export_data.filename = 'circles_' + rows + 'x' + columns + '_' + circle_size_mm + 'mm_' + circle_spacing_mm + 'mm';
+    export_data.info = 'Circle size: ' + circle_size_mm + 'mm' + ' Circle spacing: ' + circle_spacing_mm + 'mm' + ' size: ' + columns + 'x' + rows;
 
     var svg = document.createElement('svg');
     svg.setAttribute('viewBox', '0 0 ' + width + ' ' + height);
@@ -221,6 +245,7 @@ function generateAsymmetricCircleBoard(rows, columns, circle_size_mm, circle_spa
     export_data.width_mm = width;
     export_data.height_mm = height;
     export_data.filename = 'circles_' + rows + 'x' + columns + '_' + circle_size_mm + 'mm_' + circle_spacing_mm + 'mm';
+    export_data.info = 'Circle size: ' + circle_size_mm + 'mm' + ' Circle spacing: ' + circle_spacing_mm + 'mm' + ' size: ' + columns + 'x' + rows;
 
     var svg = document.createElement('svg');
     svg.setAttribute('viewBox', '0 0 ' + width + ' ' + height);
@@ -296,8 +321,10 @@ function export_pdf() {
         once: (...args) => { },
         emit: (...args) => { },
     });
-
+    
     window.SVGtoPDF(doc, svg, margin_points, margin_points)
+    doc.fontSize(6);
+    doc.text(export_data.info, margin_points, margin_points/3);
 
     doc.end();
 }
