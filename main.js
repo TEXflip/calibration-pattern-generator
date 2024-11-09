@@ -4,57 +4,6 @@ let export_data = {
     filename: ''
 };
 
-
-function generateMarkerSvg(width, height, bits, fixPdfArtifacts = true) {
-    var svg = document.createElement('svg');
-    svg.setAttribute('viewBox', '0 0 ' + (width + 2) + ' ' + (height + 2));
-    svg.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
-    svg.setAttribute('shape-rendering', 'crispEdges');
-
-    // Background rect
-    var rect = document.createElement('rect');
-    rect.setAttribute('x', 0);
-    rect.setAttribute('y', 0);
-    rect.setAttribute('width', width + 2);
-    rect.setAttribute('height', height + 2);
-    rect.setAttribute('fill', 'black');
-    svg.appendChild(rect);
-
-    // "Pixels"
-    for (var i = 0; i < height; i++) {
-        for (var j = 0; j < width; j++) {
-            var white = bits[i * height + j];
-            if (!white) continue;
-
-            var pixel = document.createElement('rect');;
-            pixel.setAttribute('width', 1);
-            pixel.setAttribute('height', 1);
-            pixel.setAttribute('x', j + 1);
-            pixel.setAttribute('y', i + 1);
-            pixel.setAttribute('fill', 'white');
-            svg.appendChild(pixel);
-
-            if (!fixPdfArtifacts) continue;
-
-            if ((j < width - 1) && (bits[i * height + j + 1])) {
-                pixel.setAttribute('width', 1.5);
-            }
-
-            if ((i < height - 1) && (bits[(i + 1) * height + j])) {
-                var pixel2 = document.createElement('rect');;
-                pixel2.setAttribute('width', 1);
-                pixel2.setAttribute('height', 1.5);
-                pixel2.setAttribute('x', j + 1);
-                pixel2.setAttribute('y', i + 1);
-                pixel2.setAttribute('fill', 'white');
-                svg.appendChild(pixel2);
-            }
-        }
-    }
-
-    return svg;
-}
-
 function generateMarkerInSvg(bits, svg, size, square_size, svgSize, row, col) {
     let x = col + (square_size - svgSize) / 2;
     let y = row + (square_size - svgSize) / 2;
@@ -80,22 +29,6 @@ function generateMarkerInSvg(bits, svg, size, square_size, svgSize, row, col) {
             pixel.setAttribute('y', cellSize + y + i * cellSize);
             pixel.setAttribute('fill', 'white');
             svg.appendChild(pixel);
-
-            // if (!fixPdfArtifacts) continue;
-
-            // if ((j < width - 1) && (bits[i * height + j + 1])) {
-            //     pixel.setAttribute('width', 1.5);
-            // }
-
-            // if ((i < height - 1) && (bits[(i + 1) * height + j])) {
-            //     var pixel2 = document.createElement('rect');;
-            //     pixel2.setAttribute('width', 1);
-            //     pixel2.setAttribute('height', 1.5);
-            //     pixel2.setAttribute('x', j + 1);
-            //     pixel2.setAttribute('y', i + 1);
-            //     pixel2.setAttribute('fill', 'white');
-            //     svg.appendChild(pixel2);
-            // }
         }
     }
 }
@@ -128,16 +61,16 @@ function generateArucoMarker(size, markerSize, dictName, id) {
 
     width = size * markerSize;
     height = size * markerSize;
-    export_data.width_mm = width;
-    export_data.height_mm = height;
+    export_data.width_mm = size;
+    export_data.height_mm = size;
     export_data.filename = 'aruco_' + dictName + '_' + id;
 
     var svg = document.createElement('svg');
     svg.setAttribute('viewBox', '0 0 ' + (markerSize + 2) + ' ' + (markerSize + 2));
     svg.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
     svg.setAttribute('shape-rendering', 'crispEdges');
-    svg.setAttribute('width', width + 'mm');
-    svg.setAttribute('height', height + 'mm');
+    svg.setAttribute('width', size + 'mm');
+    svg.setAttribute('height', size + 'mm');
     var rect = document.createElement('rect');
     rect.setAttribute('x', 0);
     rect.setAttribute('y', 0);
@@ -382,9 +315,16 @@ function init() {
     var markerIdStartInput = document.querySelector('.setup input[name=id]');
     var sizeInput = document.querySelector('.setup input[name=size]');
     var spacingInput = document.querySelector('.setup input[name=spacing]');
-    // var saveButton = document.querySelector('.save-button');
     var rowsInput = document.querySelector('.setup input[name=rows]');
     var columnsInput = document.querySelector('.setup input[name=columns]');
+
+    var form_spacing = document.querySelector('.frm-spacing');
+    var form_label_size = document.querySelector('#label-size');
+    var form_rows = document.querySelector('.frm-rows');
+    var form_cols = document.querySelector('.frm-cols');
+    var form_id = document.querySelector('.frm-id');
+    var form_dict = document.querySelector('.frm-dict');
+    var form_label_id = document.querySelector('#label-id');
 
     get_form_data = function () {
         var option = dictSelect.options[dictSelect.selectedIndex];
@@ -401,6 +341,16 @@ function init() {
         }
     }
 
+    update_form_status = function (spacing_visible, label_size_text, rows_and_cols_visible, start_id_visible, dict_visible, marker_id_text='Marker Id:', size = 20) {
+        form_spacing.hidden = !spacing_visible;
+        form_label_size.innerText = label_size_text;
+        form_rows.hidden = !rows_and_cols_visible;
+        form_cols.hidden = !rows_and_cols_visible;
+        form_id.hidden = !start_id_visible;
+        form_dict.hidden = !dict_visible;
+        form_label_id.innerText = marker_id_text;
+    }
+
     function updateMarker() {
         var { markerId, size, spacing, dictName, maxId, marker_size, rows, columns, pattern } = get_form_data();
 
@@ -411,15 +361,21 @@ function init() {
             markerId = maxId;
         }
 
-        svgFunGeneration = () => generateChessboardSvg(rows, columns, size);
         if (pattern == 'aruco') {
             svgFunGeneration = () => generateArucoMarker(size, marker_size, dictName, markerId);
+            update_form_status(false, 'Marker size (mm):', false, true, true);
         } else if (pattern == 'charuco') {
             svgFunGeneration = () => generateCharucoBoard(rows, columns, size, dictName, marker_size, markerId);
+            update_form_status(false, 'Square size (mm):', true, true, true, marker_id_text='Marker Id start:');
         } else if (pattern == 'circles') {
             svgFunGeneration = () => generateCircleBoard(rows, columns, size, spacing);
+            update_form_status(true, 'Circle size (mm):', true, false, false);
         } else if (pattern == 'acircles') {
             svgFunGeneration = () => generateAsymmetricCircleBoard(rows, columns, size, spacing);
+            update_form_status(true, 'Circle size (mm):', true, false, false);
+        } else { // chessboard
+            svgFunGeneration = () => generateChessboardSvg(rows, columns, size);
+            update_form_status(false, 'Square size (mm):', true, false, false);
         }
 
         // Wait until dict data is loaded

@@ -11,17 +11,17 @@
 	<body>
 		<h1>Calibration Pattern Generator!</h1>
 		<form class="setup">
-			<div class="field">
+			<div class="field frm-pattern">
                 <label for="frm-pattern">Pattern:</label>
                 <select name="pattern" id="frm-pattern">
-					<option value="charuco">ChAruco</option>
-                    <option value="chessboard">Chessboard</option>
 					<option value="aruco">Aruco Marker</option>
+					<option value="charuco">ChArUco</option>
+                    <option value="chessboard">Chessboard</option>
                     <option value="circles">Circles</option>
                     <option value="acircles">Asymmetric Circles</option>
                 </select>
             </div>
-			<div class="field">
+			<div class="field frm-dict">
                 <label for="frm-dict">Dictionary:</label>
 				<select name="dict" id="frm-dict">
 					<optgroup label="Standard dictionaries">
@@ -40,38 +40,43 @@
 					</optgroup>
 				</select>
 			</div>
-			<div class="field">
-				<label for="frm-id">Marker ID:</label>
+			<div class="field frm-id">
+				<label for="frm-id" id="label-id">Marker start Id</label>
 				<input id="frm-id" name="id" type="number" min="0" max="999" value="0">
 			</div>
 			<div class="field">
-				<label for="frm-size">Marker size, mm:</label>
+				<label for="frm-size" id="label-size">Square size (mm)</label>
 				<input id="frm-size" name="size" type="number" min="1" max="5000" value="20">
 			</div>
-			<div class="field">
-				<label for="frm-spacing">circle spacing, mm:</label>
+			<div class="field frm-spacing">
+				<label for="frm-spacing">circle spacing (mm)</label>
 				<input id="frm-spacing" name="spacing" type="number" min="0" max="5000" value="10">
 			</div>
-            <div class="field">
-                <label for="frm-cols">columns:</label>
+            <div class="field frm-cols">
+                <label for="frm-cols">columns</label>
                 <input id="frm-cols" name="columns" type="number" min="2" max="5000" value="7">
             </div>
-			<div class="field">
-				<label for="frm-rows">rows:</label>
+			<div class="field frm-rows">
+				<label for="frm-rows">rows</label>
 				<input id="frm-rows" name="rows" type="number" min="2" max="5000" value="5">
+			</div>
+			<div class="tools">
+				<input type="button" value="Export SVG" class="export-svg" onclick="export_svg()">
+				<input type="button" value="Export PDF" class="export-pdf" onclick="export_pdf()">
 			</div>
 		</form>
 
 		<div class="marker"></div>
 
-		<div class="tools">
-			<input type="button" value="Export SVG" class="export-svg" onclick="export_svg()">
-			<input type="button" value="Export PDF" class="export-pdf" onclick="export_pdf()">
-			<!-- <a href="" class="save-button">Save</a> this marker as SVG, or -->
-			<!-- <a href="javascript:window.print()">open</a> standard browser's print dialog to print or get the PDF. -->
-		</div>
 		<footer>
-
+			<div>
+				If you like this project, please <a href="https://github.com/TEXflip/calibration-pattern-generator"><nobr>★ it on GitHub</nobr></a>!
+			</div>
+			<div>
+				See <a href="https://docs.opencv.org/3.4/df/d4a/tutorial_charuco_detection.html">OpenCV documentation</a>
+				to learn about ChArUco boards.<br>
+				Author: <a href="https://github.com/TEXflip">Michele Tessari</a>, based on <a href="https://chev.me/arucogen/">ArUco markers generator</a> by <a href="http://chev.me">Oleg Kalachev</a>.
+			</div>
 		</footer>
 		<script type="text/javascript" src="main.js"></script>
 	</body>
