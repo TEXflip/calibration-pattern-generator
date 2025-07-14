@@ -151,7 +151,7 @@ function generateChessboardSvg(rows, columns, squareSize) {
     return svg;
 }
 
-function generateCharucoBoard(rows, columns, squareSize, dictName, markerSize, startId = 0) {
+function generateCharucoBoard(rows, columns, squareSize, dictName, markerSize, startId = 0, legacy=false) {
     markerSizemm = squareSize - Math.floor((squareSize - 1) / 4) - 1;
     markerSizeSvg = markerSizemm / squareSize;
     width = columns * squareSize;
@@ -185,7 +185,11 @@ function generateCharucoBoard(rows, columns, squareSize, dictName, markerSize, s
         for (var j = 0; j < columns; j++) {
             x = j * squareSize;
             y = i * squareSize;
-            if ((i + j + 1) % 2 == 0) {
+            l = 1
+            if (legacy) {
+                l = 0;
+            }
+            if ((i + j + 1) % 2 == l) {
                 var rect = document.createElement('rect');
                 rect.setAttribute('x', x);
                 rect.setAttribute('y', y);
@@ -393,6 +397,9 @@ function init() {
             update_form_status(false, 'Marker size (mm):', false, true, true);
         } else if (pattern == 'charuco') {
             svgFunGeneration = () => generateCharucoBoard(rows, columns, size, dictName, marker_size, markerId);
+            update_form_status(false, 'Square size (mm):', true, true, true, marker_id_text='Marker Id start:');
+        } else if (pattern == 'charuco_legacy') {
+            svgFunGeneration = () => generateCharucoBoard(rows, columns, size, dictName, marker_size, markerId, true);
             update_form_status(false, 'Square size (mm):', true, true, true, marker_id_text='Marker Id start:');
         } else if (pattern == 'circles') {
             svgFunGeneration = () => generateCircleBoard(rows, columns, size, spacing);
