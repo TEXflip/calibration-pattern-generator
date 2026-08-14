@@ -18,17 +18,22 @@ a {
 }
 
 .setup {
-	margin: 0 10px;
+	margin: 20px auto;
+	width: 100%;
+	max-width: 440px;
+	padding: 0 12px;
+	box-sizing: border-box;
 }
 
 .setup input {
 	font-weight: 300;
 	margin: 0;
 	margin-left: 20px;
-	font-size: 15px;
+	font-size: 16px;
 	padding: 2px;
 	width: 80px;
 	vertical-align: -1px;
+	box-sizing: border-box;
 }
 
 .setup select {
@@ -37,11 +42,7 @@ a {
 	margin-left: 20px;
 	font-size: 17px;
 	vertical-align: -1px;
-}
-
-.setup {
-	margin: 20px auto;
-	width: 440px;
+	box-sizing: border-box;
 }
 
 .setup .field {
@@ -58,7 +59,7 @@ a {
 }
 
 .setup input[type="button"] {
-    width: 100px;
+	width: 100px;
 }
 
 .tools {
@@ -78,7 +79,15 @@ a {
 .marker {
 	text-align: center;
 	background: white;
-	margin: 40px;
+	margin: 24px 12px;
+	overflow-x: auto;
+}
+
+.marker svg {
+	display: block;
+	max-width: 100%;
+	height: auto;
+	margin: 0 auto;
 }
 
 .marker table {
@@ -107,6 +116,54 @@ footer {
 	display: flex;
 	justify-content: space-between;
 	align-items: flex-start;
+}
+
+@media (max-width: 768px) {
+	h1 {
+		font-size: 20px;
+		margin: 16px 12px 24px;
+	}
+
+	.setup .field {
+		display: flex;
+		flex-direction: column;
+		gap: 6px;
+		margin: 12px 0;
+	}
+
+	.setup label {
+		width: auto;
+		text-align: left;
+	}
+
+	.setup input,
+	.setup select,
+	.setup input[type="button"] {
+		width: 100%;
+		margin-left: 0;
+		min-height: 44px;
+		font-size: 16px;
+		padding: 8px 10px;
+	}
+
+	.tools {
+		display: flex;
+		flex-direction: column;
+		gap: 10px;
+		margin: 16px 0;
+	}
+
+	.marker {
+		margin: 20px 12px;
+	}
+
+	footer {
+		flex-direction: column;
+		align-items: flex-start;
+		text-align: left;
+		gap: 10px;
+		margin: 20px 12px;
+	}
 }
 
 @media print {
