@@ -17,6 +17,15 @@ a {
 	text-decoration: none;
 }
 
+.error-message {
+	display: none;
+	color: red;
+	font-weight: bold;
+	font-size: 16px;
+	margin-top: 10px;
+	text-align: center;
+}
+
 .setup {
 	margin: 20px auto;
 	width: 100%;

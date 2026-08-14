@@ -47,18 +47,27 @@ function generateMarkerInSvg(bits, svg, size, square_size, svgSize, row, col) {
     }
 }
 
-var dict;
+function update_error_message(too_many_markers) {
+    let options = get_form_data();
+    let text = "Error: Too many markers for " + options.option_text + " can't fill a " + options.rows + "x" + options.columns + " board.";
+    document.querySelector('.error-message').innerText = text;
+    if (too_many_markers) {
+        document.querySelector('.error-message').style.display = 'block';
+    }
+    else {
+        document.querySelector('.error-message').style.display = 'none';
+    }
+}
+
+var marker_dict;
 
 function arucoMatrix(width, height, dictName, id) {
-    var bytes = dict[dictName][id];
+    var bytes = marker_dict[dictName][id];
     var bits = [];
     var bitsCount = width * height;
 
-    if (bytes === undefined) {
-        console.error(dictName + " does not have id " + id);
-        bits = new Array(bitsCount).fill(0);
-        return bits;
-    }
+    if (bytes === undefined)
+        return null;
 
     // Parse marker's bytes
     for (var byte of bytes) {
@@ -71,10 +80,14 @@ function arucoMatrix(width, height, dictName, id) {
 }
 
 function generateArucoMarker(size, markerSize, dictName, id) {
-    bits = arucoMatrix(markerSize, markerSize, dictName, id);
+    let bits = arucoMatrix(markerSize, markerSize, dictName, id);
+    if (bits === null) {
+        too_many_markers = true;
+        bits = new Array(markerSize * markerSize).fill(0);
+    }
 
-    width = size * markerSize;
-    height = size * markerSize;
+    let width = size * markerSize;
+    let height = size * markerSize;
     export_data.width_mm = size;
     export_data.height_mm = size;
     export_data.filename = 'aruco_' + OPENCV_DICTS[dictName] + '_' + id;
@@ -108,13 +121,15 @@ function generateArucoMarker(size, markerSize, dictName, id) {
             svg.appendChild(pixel);
         }
     }
+    
+    update_error_message(bits === null);
 
     return svg;
 }
 
 function generateChessboardSvg(rows, columns, squareSize) {
-    width = columns * squareSize;
-    height = rows * squareSize;
+    let width = columns * squareSize;
+    let height = rows * squareSize;
     export_data.width_mm = width;
     export_data.height_mm = height;
     export_data.filename = 'chessboard_' + rows + 'x' + columns + '_' + squareSize + 'mm';
@@ -152,10 +167,10 @@ function generateChessboardSvg(rows, columns, squareSize) {
 }
 
 function generateCharucoBoard(rows, columns, squareSize, dictName, markerSize, startId = 0, legacy=false) {
-    markerSizemm = squareSize - Math.floor((squareSize - 1) / 4) - 1;
-    markerSizeSvg = markerSizemm / squareSize;
-    width = columns * squareSize;
-    height = rows * squareSize;
+    let markerSizemm = squareSize - Math.floor((squareSize - 1) / 4) - 1;
+    let markerSizeSvg = markerSizemm / squareSize;
+    let width = columns * squareSize;
+    let height = rows * squareSize;
 
     export_data.width_mm = width;
     export_data.height_mm = height;
@@ -181,11 +196,12 @@ function generateCharucoBoard(rows, columns, squareSize, dictName, markerSize, s
     rect.setAttribute('fill', 'white');
     svg.appendChild(rect);
 
+    let too_many_markers = false;
     for (var i = 0; i < rows; i++) {
         for (var j = 0; j < columns; j++) {
-            x = j * squareSize;
-            y = i * squareSize;
-            l = 1
+            let x = j * squareSize;
+            let y = i * squareSize;
+            let l = 1
             if (legacy) {
                 l = 0;
             }
@@ -199,17 +215,24 @@ function generateCharucoBoard(rows, columns, squareSize, dictName, markerSize, s
                 svg.appendChild(rect);
             }
             else {
-                bits = arucoMatrix(markerSize, markerSize, dictName, startId++);
+                let bits = arucoMatrix(markerSize, markerSize, dictName, startId++);
+                if (bits === null) {
+                    too_many_markers = true;
+                    bits = new Array(markerSize * markerSize).fill(0);
+                }
                 generateMarkerInSvg(bits, svg, markerSize, squareSize, markerSizemm, y, x);
             }
         }
     }
+
+    update_error_message(too_many_markers);
+
     return svg;
 }
 
 function generateCircleBoard(rows, columns, circle_size_mm, circle_spacing_mm) {
-    width = columns * (circle_size_mm + circle_spacing_mm);
-    height = rows * (circle_size_mm + circle_spacing_mm);
+    let width = columns * (circle_size_mm + circle_spacing_mm);
+    let height = rows * (circle_size_mm + circle_spacing_mm);
     export_data.width_mm = width;
     export_data.height_mm = height;
     export_data.filename = 'circles_' + rows + 'x' + columns + '_' + circle_size_mm + 'mm_' + circle_spacing_mm + 'mm';
@@ -244,8 +267,8 @@ function generateCircleBoard(rows, columns, circle_size_mm, circle_spacing_mm) {
 }
 
 function generateAsymmetricCircleBoard(rows, columns, circle_size_mm, circle_spacing_mm) {
-    width = columns * (circle_size_mm + circle_spacing_mm);
-    height = rows * (circle_size_mm + circle_spacing_mm);
+    let width = columns * (circle_size_mm + circle_spacing_mm);
+    let height = rows * (circle_size_mm + circle_spacing_mm);
     export_data.width_mm = width;
     export_data.height_mm = height;
     export_data.filename = 'circles_' + rows + 'x' + columns + '_' + circle_size_mm + 'mm_' + circle_spacing_mm + 'mm';
@@ -267,11 +290,11 @@ function generateAsymmetricCircleBoard(rows, columns, circle_size_mm, circle_spa
 
     for (var i = 0; i < rows; i++) {
         for (var j = 0; i % 2 == 0 ? j < columns : j < columns - 1; j++) {
-            cx = j * (circle_spacing_mm + circle_size_mm) + circle_spacing_mm / 2 + circle_size_mm / 2;
+            let cx = j * (circle_spacing_mm + circle_size_mm) + circle_spacing_mm / 2 + circle_size_mm / 2;
             if (i % 2 == 1) {
                 cx += (circle_spacing_mm + circle_size_mm) / 2;
             }
-            cy = i * (circle_spacing_mm + circle_size_mm) + circle_spacing_mm / 2 + circle_size_mm / 2;
+            let cy = i * (circle_spacing_mm + circle_size_mm) + circle_spacing_mm / 2 + circle_size_mm / 2;
             var circle = document.createElement('circle');
             circle.setAttribute('cx', cx);
             circle.setAttribute('cy', cy);
@@ -296,10 +319,10 @@ function export_svg() {
 }
 
 function export_pdf() {
-    margin_points = 10;
-    mm_to_points = 2.8346456693;
-    width_points = export_data.width_mm * mm_to_points + margin_points * 2;
-    height_points = export_data.height_mm * mm_to_points + margin_points * 2;
+    let margin_points = 10;
+    let mm_to_points = 2.8346456693;
+    let width_points = export_data.width_mm * mm_to_points + margin_points * 2;
+    let height_points = export_data.height_mm * mm_to_points + margin_points * 2;
 
     var svg = document.querySelector('.marker').innerHTML;
     const doc = new window.PDFDocument({ size: [width_points, height_points] });
@@ -337,7 +360,7 @@ function export_pdf() {
 var loadDict = fetch('markers.json').then(function (res) {
     return res.json();
 }).then(function (json) {
-    dict = json;
+    marker_dict = json;
 });
 
 function init() {
@@ -369,6 +392,7 @@ function init() {
             rows: Number(rowsInput.value),
             columns: Number(columnsInput.value),
             pattern: patternSelect.options[patternSelect.selectedIndex].value,
+            option_text: option.innerText
         }
     }
 
